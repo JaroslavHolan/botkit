@@ -63,6 +63,7 @@ This bot demonstrates many of the core features of Botkit:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
+var request = require('request');
 
 if (!process.env.token) {
     console.log('Error: Specify token in environment');
@@ -102,6 +103,38 @@ controller.hears(['hello', 'hi'], 'direct_message,direct_mention,mention', funct
         }
     });
 });
+
+controller.hears(['help|pomoc'], 'direct_message,direct_mention,mention', function (bot, message) {
+
+    controller.storage.users.get(message.user, function (err, user) {
+        bot.reply(message, '- Kde je WebApi? \n- Hello \n- pomoc');
+
+    });
+});
+
+controller.hears(['Kde je WebAPI?'], 'direct_message,direct_mention,mention', function (bot, message) {
+
+    controller.storage.users.get(message.user, function (err, user) {
+        bot.reply(message, 'WebAPI je tady https://developers.csas.cz/');
+
+    });
+});
+
+controller.hears(['webapi'], 'direct_message,direct_mention,mention', function (bot, message) {
+
+    controller.storage.users.get(message.user, function (err, user) {
+
+        request('https://www.csas.cz/webapi/api/v1/version', function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var version = JSON.parse(body).version
+                var java = JSON.parse(body).java
+                bot.reply(message, 'Toto je WebAPI verze *' + version + '*. \nBěží na Javě *' + java + '*.');
+            }
+        })
+
+    });
+});
+
 
 controller.hears(['call me (.*)', 'my name is (.*)'], 'direct_message,direct_mention,mention', function(bot, message) {
     var name = message.match[1];
