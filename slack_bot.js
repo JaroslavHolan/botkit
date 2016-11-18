@@ -64,6 +64,7 @@ This bot demonstrates many of the core features of Botkit:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 var request = require('request');
+var unirest = require('unirest');
 
 if (!process.env.token) {
     console.log('Error: Specify token in environment');
@@ -131,6 +132,21 @@ controller.hears(['webapi'], 'direct_message,direct_mention,mention', function (
                 bot.reply(message, 'Toto je WebAPI verze *' + version + '*. \nBěží na Javě *' + java + '*.');
             }
         })
+
+    });
+});
+
+controller.hears(['zona'], 'direct_message,direct_mention,mention', function (bot, message) {
+
+    controller.storage.users.get(message.user, function (err, user) {
+
+        unirest.get("https://tehuano-time-zone-v1.p.mashape.com/api2/timezone/50.075538/14.437800")
+            .header("X-Mashape-Key", "cDbubgyIzxmshEPcPwAsaaBmm302p1oE9lRjsn3zZagqKFEjzn")
+            .header("Accept", "application/json")
+            .end(function (result) {
+                var id = result.body.Id
+                bot.reply(message, 'Praha je v časové zóně ' + id)
+            });
 
     });
 });
