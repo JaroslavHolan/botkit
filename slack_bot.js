@@ -64,7 +64,6 @@ This bot demonstrates many of the core features of Botkit:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 var request = require('request');
-var unirest = require('unirest');
 
 if (!process.env.token) {
     console.log('Error: Specify token in environment');
@@ -121,17 +120,22 @@ controller.hears(['Kde je WebAPI?'], 'direct_message,direct_mention,mention', fu
     });
 });
 
-controller.hears(['webapi'], 'direct_message,direct_mention,mention', function (bot, message) {
+controller.hears(['verze WebAPI'], 'direct_message,direct_mention,mention', function (bot, message) {
 
     controller.storage.users.get(message.user, function (err, user) {
+        var options = {
+            url: 'https://www.csas.cz/webapi/api/v1/version'
+        };
 
-        request('https://www.csas.cz/webapi/api/v1/version', function (error, response, body) {
+        function callback(error, response, body) {
             if (!error && response.statusCode == 200) {
                 var version = JSON.parse(body).version
                 var java = JSON.parse(body).java
-                bot.reply(message, 'Toto je WebAPI verze *' + version + '*. \nBěží na Javě *' + java + '*.');
+                bot.reply(message, 'Toto je WebAPI verze  *' + version + '*. \nBěží na Javě *' + java + '*.');
             }
-        })
+        }
+
+        request(options, callback);
 
     });
 });
@@ -140,13 +144,22 @@ controller.hears(['zona'], 'direct_message,direct_mention,mention', function (bo
 
     controller.storage.users.get(message.user, function (err, user) {
 
-        unirest.get("https://tehuano-time-zone-v1.p.mashape.com/api2/timezone/50.075538/14.437800")
-            .header("X-Mashape-Key", "cDbubgyIzxmshEPcPwAsaaBmm302p1oE9lRjsn3zZagqKFEjzn")
-            .header("Accept", "application/json")
-            .end(function (result) {
-                var id = result.body.Id
-                bot.reply(message, 'Praha je v časové zóně ' + id)
-            });
+        var options = {
+            url: 'https://tehuano-time-zone-v1.p.mashape.com/api2/timezone/50.075538/14.437800',
+            headers: {
+                'X-Mashape-Key': 'cDbubgyIzxmshEPcPwAsaaBmm302p1oE9lRjsn3zZagqKFEjzn',
+                'Accept': 'application/json'
+            }
+        };
+
+        function callback(error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var id = JSON.parse(body).Id
+                bot.reply(message, 'Praha je v časové zóně: ' + id)
+            }
+        }
+
+        request(options, callback);
 
     });
 });
