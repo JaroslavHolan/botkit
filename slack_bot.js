@@ -82,7 +82,7 @@ var bot = controller.spawn({
 }).startRTM();
 
 
-controller.hears(['hello', 'hi'], 'direct_message,direct_mention,mention', function(bot, message) {
+controller.hears(['ahoj', 'čau', 'cau'], 'direct_message,direct_mention,mention', function(bot, message) {
 
     bot.api.reactions.add({
         timestamp: message.ts,
@@ -97,9 +97,9 @@ controller.hears(['hello', 'hi'], 'direct_message,direct_mention,mention', funct
 
     controller.storage.users.get(message.user, function(err, user) {
         if (user && user.name) {
-            bot.reply(message, 'Hello ' + user.name + '!!');
+            bot.reply(message, 'Ahoj ' + user.name + '!!');
         } else {
-            bot.reply(message, 'Hello.');
+            bot.reply(message, 'Ahoj.');
         }
     });
 });
@@ -140,66 +140,8 @@ controller.hears(['verze WebAPI'], 'direct_message,direct_mention,mention', func
     });
 });
 
-controller.hears(['Kolik mám na účtu?|zůstatek|zustatek'], 'direct_message,direct_mention,mention', function (bot, message) {
 
-    controller.storage.users.get(message.user, function (err, user) {
-        var options = {
-            url: 'https://api.csas.cz/sandbox/webapi/api/v3/netbanking/my/accounts?size=100&page=0&sort=iban&order=desc&type=CURRENT',
-            headers: {
-                'WEB-API-key': '35bd5a35-5909-460e-b3c2-20073d9c4c2e',
-                'Authorization': 'Bearer demo_001',
-                'Accept': 'application/json'
-            }
-        };
-
-        function callback(error, response, body) {
-            if (!error && response.statusCode == 200) {
-                var account = JSON.parse(body).accounts.find(findCurrent)
-                if (typeof account != 'undefined') {
-                    var value = account.balance.value
-                    var currency = account.balance.currency
-                    bot.reply(message, 'Zůstatek na účtu je *' + value + ' ' + currency + '*.');
-                } else {
-                    bot.reply(message, 'Zůstatek na účtu je nenalezen.');
-                }
-            }
-        }
-
-        function findCurrent(account) {
-            return account.type == 'CURRENT';
-        }
-
-        request(options, callback);
-
-    });
-});
-
-controller.hears(['zona'], 'direct_message,direct_mention,mention', function (bot, message) {
-
-    controller.storage.users.get(message.user, function (err, user) {
-
-        var options = {
-            url: 'https://tehuano-time-zone-v1.p.mashape.com/api2/timezone/50.075538/14.437800',
-            headers: {
-                'X-Mashape-Key': 'cDbubgyIzxmshEPcPwAsaaBmm302p1oE9lRjsn3zZagqKFEjzn',
-                'Accept': 'application/json'
-            }
-        };
-
-        function callback(error, response, body) {
-            if (!error && response.statusCode == 200) {
-                var id = JSON.parse(body).Id
-                bot.reply(message, 'Praha je v časové zóně: ' + id)
-            }
-        }
-
-        request(options, callback);
-
-    });
-});
-
-
-controller.hears(['call me (.*)', 'my name is (.*)'], 'direct_message,direct_mention,mention', function(bot, message) {
+controller.hears(['rikej mi (.*)', 'Moje jmeno je (.*)'], 'direct_message,direct_mention,mention', function(bot, message) {
     var name = message.match[1];
     controller.storage.users.get(message.user, function(err, user) {
         if (!user) {
@@ -214,7 +156,7 @@ controller.hears(['call me (.*)', 'my name is (.*)'], 'direct_message,direct_men
     });
 });
 
-controller.hears(['what is my name', 'who am i'], 'direct_message,direct_mention,mention', function(bot, message) {
+controller.hears(['Jak se jmenuji?', 'Kdo jsem?'], 'direct_message,direct_mention,mention', function(bot, message) {
 
     controller.storage.users.get(message.user, function(err, user) {
         if (user && user.name) {
@@ -222,11 +164,11 @@ controller.hears(['what is my name', 'who am i'], 'direct_message,direct_mention
         } else {
             bot.startConversation(message, function(err, convo) {
                 if (!err) {
-                    convo.say('I do not know your name yet!');
-                    convo.ask('What should I call you?', function(response, convo) {
-                        convo.ask('You want me to call you `' + response.text + '`?', [
+                    convo.say('Ještě neznám tvé jméno!');
+                    convo.ask('Jak bych ti měl říkat?', function(response, convo) {
+                        convo.ask('Chceš po mě, abych ti říkal `' + response.text + '`?', [
                             {
-                                pattern: 'yes',
+                                pattern: 'ano',
                                 callback: function(response, convo) {
                                     // since no further messages are queued after this,
                                     // the conversation will end naturally with status == 'completed'
@@ -234,7 +176,7 @@ controller.hears(['what is my name', 'who am i'], 'direct_message,direct_mention
                                 }
                             },
                             {
-                                pattern: 'no',
+                                pattern: 'ne',
                                 callback: function(response, convo) {
                                     // stop the conversation. this will cause it to end with status == 'stopped'
                                     convo.stop();
@@ -255,7 +197,7 @@ controller.hears(['what is my name', 'who am i'], 'direct_message,direct_mention
 
                     convo.on('end', function(convo) {
                         if (convo.status == 'completed') {
-                            bot.reply(message, 'OK! I will update my dossier...');
+                            bot.reply(message, 'OK! Zapamatuji si to.');
 
                             controller.storage.users.get(message.user, function(err, user) {
                                 if (!user) {
@@ -265,7 +207,7 @@ controller.hears(['what is my name', 'who am i'], 'direct_message,direct_mention
                                 }
                                 user.name = convo.extractResponse('nickname');
                                 controller.storage.users.save(user, function(err, id) {
-                                    bot.reply(message, 'Got it. I will call you ' + user.name + ' from now on.');
+                                    bot.reply(message, 'Mám to. Budu ti říkat ' + user.name + ' od teď.');
                                 });
                             });
 
@@ -273,7 +215,7 @@ controller.hears(['what is my name', 'who am i'], 'direct_message,direct_mention
 
                         } else {
                             // this happens if the conversation ended prematurely for some reason
-                            bot.reply(message, 'OK, nevermind!');
+                            bot.reply(message, 'OK, nevadí!');
                         }
                     });
                 }
@@ -283,58 +225,28 @@ controller.hears(['what is my name', 'who am i'], 'direct_message,direct_mention
 });
 
 
-controller.hears(['shutdown'], 'direct_message,direct_mention,mention', function(bot, message) {
 
-    bot.startConversation(message, function(err, convo) {
-
-        convo.ask('Are you sure you want me to shutdown?', [
-            {
-                pattern: bot.utterances.yes,
-                callback: function(response, convo) {
-                    convo.say('Bye!');
-                    convo.next();
-                    setTimeout(function() {
-                        process.exit();
-                    }, 3000);
-                }
-            },
-        {
-            pattern: bot.utterances.no,
-            default: true,
-            callback: function(response, convo) {
-                convo.say('*Phew!*');
-                convo.next();
-            }
-        }
-        ]);
-    });
-});
-
-
-controller.hears(['uptime', 'identify yourself', 'who are you', 'what is your name'],
+controller.hears(['Kdo jsi?', 'Jak se jmenuješ?'],
     'direct_message,direct_mention,mention', function(bot, message) {
 
         var hostname = os.hostname();
         var uptime = formatUptime(process.uptime());
 
         bot.reply(message,
-            ':robot_face: I am a bot named <@' + bot.identity.name +
-             '>. I have been running for ' + uptime + ' on ' + hostname + '.');
+            ':robot_face: Jsem chatbot. Jmenuji se <@' + bot.identity.name +
+             '>. A už běžím ' + uptime + ' na ' + hostname + '.');
 
     });
 
 function formatUptime(uptime) {
-    var unit = 'second';
+    var unit = 'sekund';
     if (uptime > 60) {
         uptime = uptime / 60;
-        unit = 'minute';
+        unit = 'minut';
     }
     if (uptime > 60) {
         uptime = uptime / 60;
-        unit = 'hour';
-    }
-    if (uptime != 1) {
-        unit = unit + 's';
+        unit = 'hodin';
     }
 
     uptime = uptime + ' ' + unit;
