@@ -107,7 +107,13 @@ controller.hears(['ahoj', 'čau', 'cau'], 'direct_message,direct_mention,mention
 controller.hears(['help|pomoc'], 'direct_message,direct_mention,mention', function (bot, message) {
 
     controller.storage.users.get(message.user, function (err, user) {
-        bot.reply(message, '- Ahoj \n- pomoc');
+        bot.reply(message, 'Zkus něco z toho: ' +
+            '\n- Ahoj ' +
+            '\n- verze WebAPI' +
+            '\n- Kolik mám na účtu? | zůstatek | zustatek' +
+            '\n- Jaké mám číslo účtu? | číslo účtu | cislo uctu' +
+            '\n- Kdo jsi? | Kdo jsem?'
+        );
 
     });
 });
@@ -166,6 +172,71 @@ controller.hears(['Kolik mám na účtu?|zůstatek|zustatek'], 'direct_message,d
     });
 });
 
+controller.hears(['Jaké mám číslo účtu?|číslo účtu|cislo uctu'], 'direct_message,direct_mention,mention', function (bot, message) {
+
+    controller.storage.users.get(message.user, function (err, user) {
+        var options = {
+            url: 'https://api.csas.cz/sandbox/webapi/api/v3/netbanking/my/accounts?size=100&page=0&sort=iban&order=desc&type=CURRENT',
+            headers: {
+                'WEB-API-key': '35bd5a35-5909-460e-b3c2-20073d9c4c2e',
+                'Authorization': 'Bearer demo_001',
+                'Accept': 'application/json'
+            }
+        };
+
+        function callback(error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var account = JSON.parse(body).accounts.find(findCurrent)
+                if (typeof account != 'undefined') {
+                    var number = account.accountno.number
+                    var bankCode = account.accountno.bankCode
+                    var currency = account.balance.currency
+                    bot.reply(message, 'Tvé číslo účtu je *' + number + '/' + bankCode + '*.');
+                } else {
+                    bot.reply(message, 'Tvé číslo účtu nebylo nalezeno.');
+                }
+            }
+        }
+
+        function findCurrent(account) {
+            return account.type == 'CURRENT';
+        }
+
+        request(options, callback);
+
+    });
+});
+
+controller.hears(['Jaké mám účty?|seznam účtů|seznam uctu|účty|ucty'], 'direct_message,direct_mention,mention', function (bot, message) {
+
+    controller.storage.users.get(message.user, function (err, user) {
+        var options = {
+            url: 'https://api.csas.cz/sandbox/webapi/api/v3/netbanking/my/accounts?size=100&page=0&sort=iban&order=desc&type=CURRENT',
+            headers: {
+                'WEB-API-key': '35bd5a35-5909-460e-b3c2-20073d9c4c2e',
+                'Authorization': 'Bearer demo_001',
+                'Accept': 'application/json'
+            }
+        };
+
+        function callback(error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var text = 'Tvé účty jsou:'
+                var accounts = JSON.parse(body).accounts
+                var len = accounts.length;
+                for (i = 0; i < len; i++) {
+                    text += '\n- ' + accounts[i].productI18N
+                }
+                bot.reply(message, text)
+            }
+        }
+
+        request(options, callback);
+
+    });
+});
+
+
 controller.hears(['rikej mi (.*)', 'Moje jmeno je (.*)'], 'direct_message,direct_mention,mention', function(bot, message) {
     var name = message.match[1];
     controller.storage.users.get(message.user, function(err, user) {
@@ -181,7 +252,7 @@ controller.hears(['rikej mi (.*)', 'Moje jmeno je (.*)'], 'direct_message,direct
     });
 });
 
-controller.hears(['Jak se jmenuji?', 'Kdo jsem?'], 'direct_message,direct_mention,mention', function(bot, message) {
+controller.hears(['Kdo jsem?'], 'direct_message,direct_mention,mention', function(bot, message) {
 
     controller.storage.users.get(message.user, function(err, user) {
         if (user && user.name) {
@@ -193,7 +264,7 @@ controller.hears(['Jak se jmenuji?', 'Kdo jsem?'], 'direct_message,direct_mentio
                     convo.ask('Jak bych ti měl říkat?', function(response, convo) {
                         convo.ask('Chceš po mě, abych ti říkal `' + response.text + '`?', [
                             {
-                                pattern: 'ano',
+                                pattern: 'jo',
                                 callback: function(response, convo) {
                                     // since no further messages are queued after this,
                                     // the conversation will end naturally with status == 'completed'
