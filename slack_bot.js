@@ -140,6 +140,40 @@ controller.hears(['verze WebAPI'], 'direct_message,direct_mention,mention', func
     });
 });
 
+controller.hears(['Kolik mám na účtu?|zůstatek|zustatek'], 'direct_message,direct_mention,mention', function (bot, message) {
+
+    controller.storage.users.get(message.user, function (err, user) {
+        var options = {
+            url: 'https://api.csas.cz/sandbox/webapi/api/v3/netbanking/my/accounts?size=100&page=0&sort=iban&order=desc&type=CURRENT',
+            headers: {
+                'WEB-API-key': '35bd5a35-5909-460e-b3c2-20073d9c4c2e',
+                'Authorization': 'Bearer demo_001',
+                'Accept': 'application/json'
+            }
+        };
+
+        function callback(error, response, body) {
+            if (!error && response.statusCode == 200) {
+                var account = JSON.parse(body).accounts.find(findCurrent)
+                if (typeof account != 'undefined') {
+                    var value = account.balance.value
+                    var currency = account.balance.currency
+                    bot.reply(message, 'Zůstatek na účtu je *' + value + ' ' + currency + '*.');
+                } else {
+                    bot.reply(message, 'Zůstatek na účtu je nenalezen.');
+                }
+            }
+        }
+
+        function findCurrent(account) {
+            return account.type == 'CURRENT';
+        }
+
+        request(options, callback);
+
+    });
+});
+
 controller.hears(['zona'], 'direct_message,direct_mention,mention', function (bot, message) {
 
     controller.storage.users.get(message.user, function (err, user) {
