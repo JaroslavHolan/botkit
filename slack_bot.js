@@ -327,8 +327,8 @@ controller.hears(['Kdo jsi?', 'Jak se jmenuješ?'], 'direct_message,direct_menti
         var uptime = formatUptime(process.uptime());
 
         bot.reply(message,
-            ':robot_face: Jsem chatbot. Jmenuji se <@' + bot.identity.name +
-             '>. A už běžím ' + uptime + ' na ' + hostname + '.');
+            ':robot_face: Jsem chatbot <@' + bot.identity.name +
+             '>. Tvůj internetový bankéř.');
 
     });
 
