@@ -112,6 +112,7 @@ controller.hears(['help|pomoc'], 'direct_message,direct_mention,mention', functi
             '\n- verze WebAPI' +
             '\n- Kolik mám na účtu? | zůstatek | zustatek' +
             '\n- Jaké mám číslo účtu? | číslo účtu | cislo uctu' +
+            '\n- Jaké mám účty?|seznam účtů|seznam uctu|účty|ucty' +
             '\n- Kdo jsi? | Kdo jsem?'
         );
 
@@ -129,7 +130,7 @@ controller.hears(['verze WebAPI'], 'direct_message,direct_mention,mention', func
             if (!error && response.statusCode == 200) {
                 var version = JSON.parse(body).version
                 var java = JSON.parse(body).java
-                bot.reply(message, 'Toto je WebAPI verze  *' + version + '*. \nBěží na Javě *' + java + '*.');
+                bot.reply(message, 'Pracuji s WebAPI verze  *' + version + '*. \nBěží na Javě *' + java + '*.');
             }
         }
 
@@ -303,7 +304,7 @@ controller.hears(['Kdo jsem?'], 'direct_message,direct_mention,mention', functio
                                 }
                                 user.name = convo.extractResponse('nickname');
                                 controller.storage.users.save(user, function(err, id) {
-                                    bot.reply(message, 'Mám to. Budu ti říkat ' + user.name + ' od teď.');
+                                    bot.reply(message, 'Mám to. Budu ti od teď říkat ' + user.name);
                                 });
                             });
 
